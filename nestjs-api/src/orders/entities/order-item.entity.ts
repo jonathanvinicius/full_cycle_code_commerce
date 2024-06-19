@@ -18,7 +18,7 @@ export class OrderItem {
 	product: Product;
 
 	@Column()
-	product_id: number;
+	product_id: string;
 
 	@ManyToOne(() => Order)
 	order: Order;
