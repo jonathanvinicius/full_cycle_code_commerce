@@ -1,10 +1,20 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { OrderItem } from './order-item.entity';
 
 export enum OrderStatus {
 	PENDING = 'PENDING',
 	PAID = 'PAID',
 	FAILED = 'FAILED',
 }
+
+export type CreateOrderCommand = {
+	client_id: number;
+	items: {
+		product_id: string;
+		quantity: number;
+		price: number;
+	}[];
+};
 
 @Entity('orders')
 export class Order {
@@ -15,11 +25,28 @@ export class Order {
 	total: number;
 
 	@Column()
-	cliente_id: number;
+	client_id: number;
 
 	@Column()
 	status: OrderStatus = OrderStatus.PENDING;
 
 	@CreateDateColumn()
 	created_at: Date;
+
+	@OneToMany(() => OrderItem, (item) => item.order, { cascade: ['insert'] })
+	items: OrderItem[];
+
+	static create(input: CreateOrderCommand): Order {
+		const order = new Order();
+		order.client_id = input.client_id;
+		order.items = input.items.map((item) => {
+			const orderItem = new OrderItem();
+			orderItem.product_id = item.product_id;
+			orderItem.quantity = item.quantity;
+			orderItem.price = item.price;
+			return orderItem;
+		});
+		order.total = order.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+		return order;
+	}
 }
