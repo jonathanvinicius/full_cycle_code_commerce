@@ -3,7 +3,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { In, Repository } from 'typeorm';
-import { Product } from 'src/products/entities/product.entity';
+import { Product } from '../products/entities/product.entity';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 @Injectable()
@@ -60,8 +60,34 @@ export class OrdersService {
 			},
 		});
 	}
-
 	findOne(id: string, client_id: number) {
-		return this.orderRepository.findOneByOrFail({ id, client_id });
+		return this.orderRepository.findOneByOrFail({
+			id,
+			client_id,
+		});
+	}
+
+	async pay(id: string) {
+		const order = await this.orderRepository.findOneByOrFail({
+			id,
+		});
+
+		order.pay();
+
+		await this.orderRepository.save(order);
+
+		return order;
+	}
+
+	async fail(id: string) {
+		const order = await this.orderRepository.findOneByOrFail({
+			id,
+		});
+
+		order.fail();
+
+		await this.orderRepository.save(order);
+
+		return order;
 	}
 }
