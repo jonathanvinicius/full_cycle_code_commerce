@@ -1,6 +1,7 @@
 services:
   db:
     image: mysql:latest
+    container_name: mysql_nest_api
     ports:
       - 3307:3306
     environment:
